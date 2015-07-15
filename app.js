@@ -4,8 +4,13 @@ ejs = require('ejs'),
 crypto = require('crypto'),
 http = require('http').Server(app),
 io = require('socket.io')(http),
+// could use redis or whatever, considering hashing entries but seems useless unless a datastore is used
+keyStore = [], 
 isValidSocket = function() {
 	
+},
+addKey = function(key, fn) {
+	return fn(keyStore.push(key));
 },
 genNewPage = function(fn) {
 	crypto.randomBytes(128, function(ex, buf1) {
@@ -28,7 +33,13 @@ app.get('/', function(req, res) {
 app.post('/', function(req, res) {
 	if (req.xhr) {
 		genNewPage(function(key) {
-			res.redirect('/' + key);
+			addKey(key, function(err) {
+				if (err) {
+					throw (err);
+				}
+
+				res.redirect('/' + key);
+			});
 		});
 	}
 });
